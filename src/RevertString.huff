@@ -13,5 +13,15 @@
 
 
 #define macro MAIN() = takes(0) returns(0) {
-    
+    // Store the dynamic data offset at offset 0
+    0x20 0x00 mstore // []
+
+    0x09 0x20  // [0x20, 0x09]
+    // store the length of the message (== 9) at offset 32
+    mstore // []
+
+    __RIGHTPAD(0x4f6e6c792048756666) // [0x4f6e6c792048756666]
+    0x40 mstore // []
+
+    0x64 0x00 revert
 }

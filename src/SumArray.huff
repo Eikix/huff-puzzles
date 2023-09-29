@@ -1,4 +1,3 @@
-
 /** 
  *  SUM_ARRAY HUFF EXERCISE
  *
@@ -12,5 +11,54 @@
 
 
 #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xe0 shr // [sig]
+    __FUNC_SIG(sumArray) eq // [sig == selector(sumArray)]
+    startSumArray jumpi
+    0x00 0x00 revert
 
+    startSumArray:
+        0x04 calldataload // [length]
+        0x24 // [0x24, length]
+        swap1 // [length, initial_offset]
+        0x00 // [sum, length, offset]
+        continueSumArray jump
+
+    continueSumArray:
+        // starts with [sum, length, offset]
+
+        // Check if length == 0
+        swap1 // [length, sum, offset]
+        dup1 // [length, length, sum, offset]
+        0x00 // [0x00, length, length, sum, offset]
+        eq // [length == 0, length, sum, offset]
+
+        // If length == 0, then return
+        sum jumpi // [length, sum, offset]
+
+        swap2 // [offset, sum, length]
+        0x20 add // [offset + 32, sum, length]
+        dup1 // [offset + 32, offset + 32, sum, length]
+
+        // Get next element in the array
+        calldataload // [next_value, offset + 32, sum, length]
+        swap1 // [offset + 32, next_value, sum, length]
+        swap2 // [sum, next_value, offset + 32, length]
+        // sum += next_value
+        add // [sum + next_value, offset + 32, length]
+
+        // length -= 1
+        swap2 // [length, offset + 32, sum + next_value]
+        0x01 // [0x01, length, offset + 32, sum + next_value]
+        swap1 // [length, 0x01, offset + 32, sum + next_value]
+        sub // [length - 1, offset + 32, sum + next_value]
+        swap1 // [offset + 32, length - 1, sum + next_value]
+        swap2 // [new_sum, new_length, new_offset]
+        continueSumArray jump
+
+
+    sum:
+        // arrives with [length, sum, offset]
+        swap1 // [sum, length, offset]
+        0x00 mstore
+        0x20 0x00 return
 }

@@ -12,6 +12,43 @@
 #define function multiply(uint256, uint256) payable returns(uint256)
 
 
+
+
+
 #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr // [sig]
+    __FUNC_SIG(multiply) eq // [sig == selector(multiply)]
+    multiply jumpi // jump to multiply location if selector in calldata is the correct one
+    0x00 0x00 revert
+
+    multiply:
+        0x04 calldataload // [a]
+        dup1 // [a, a]
+        0x24 calldataload // [b, a, a]
+        dup1 // [b, b, a, a]
+        swap2 // [a, b, b, a]
+        mul // [a * b, b, a]
+        dup1 // [a * b, a * b, b, a]
+        dup1 // [a * b, a * b, a * b, b, a]
+        swap3 // [b, a * b, a * b, a * b, a]
+        gt // [b > a * b, a * b, a * b, a]
+        swap2 // [a * b, a * b, b > a * b, a]
+        swap3 // [a, a * b, b > a * b, a * b]
+        gt // [a > a * b, b > a * b, a * b]
+        or // [a > a * b OR b > a * b, a * b]
+        0x04 calldataload // [a, a > a * b OR b > a * b, a * b]
+        iszero // [a==0, a > a * b OR b > a * b, a * b]
+        0x24 calldataload // [b, a==0, a > a * b OR b > a * b, a * b]
+        iszero // [b==0, a==0, a > a * b OR b > a * b, a * b]
+        or // [b == 0 or a==0, a > a * b OR b > a * b, a * b]
+        xor // [b == 0 or a==0 XOR a > a * b OR b > a * b, a * b]
+        overflow jumpi // [a * b]
+        0x00 // [0x00, a * b]
+        mstore
+        0x20 0x00 // [0x00, 0x20]
+        return
+
+    overflow:
+        0x00 0x00 revert
 
 }

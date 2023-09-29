@@ -16,5 +16,20 @@
 
 
 #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xE0 shr // [sig]
+    dup1 // [sig, sig]
+    __FUNC_SIG(foo) eq // [sig == foo, sig]
+    swap1 // [sig, sig == foo]
+    __FUNC_SIG(bar) eq // [sig == bar, sig ==foo]
+    bar jumpi
+    foo jumpi
+    0x00 0x00 revert
 
+    bar:
+        0x03 0x00 mstore
+        0x20 0x00 return
+
+    foo:
+        0x02 0x00 mstore
+        0x20 0x00 return
 }

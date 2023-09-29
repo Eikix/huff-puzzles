@@ -7,5 +7,6 @@
 
 
 #define macro MAIN() = takes(0) returns(0) {
-    
+    0x01 0x00 mstore // store in memory value 0x01 at offset 0x00
+    0x20 0x00 return // return 32 bytes starting at offset 0x00 in memory
 }

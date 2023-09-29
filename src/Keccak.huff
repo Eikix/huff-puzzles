@@ -1,4 +1,3 @@
-
 /** 
  *  KECCAK HUFF EXERCISE
  *
@@ -9,5 +8,14 @@
 
 
  #define macro MAIN() = takes(0) returns(0) {
-    
+    calldatasize // [calldatasize]
+    0x00 0x00 // [0x00, 0x00, calldatasize]
+    calldatacopy // []
+
+    calldatasize // [calldatasize]
+    0x00 // [0x00, calldatasize]
+    sha3 // [sha3]
+    0x00 // [0x00, sha3]
+    mstore // []
+    0x20 0x00 return
  }
