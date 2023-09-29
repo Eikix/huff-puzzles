@@ -1,4 +1,3 @@
-
 /** 
  *  MAX_OF_ARRAY HUFF EXERCISE
  *  
@@ -10,5 +9,77 @@
 #define function maxOfArray(uint256[]) payable returns(uint256)
 
 #define macro MAIN() = takes(0) returns(0) {
-   
+   0x00 calldataload 0xe0 shr // [sig]
+    __FUNC_SIG(maxOfArray) eq // [sig == selector(maxOfArray)]
+    startMaxArray jumpi
+    0x00 0x00 revert
+
+    startMaxArray:
+        0x04 0x04 calldataload // [offset, 0x04]
+        add // [offset to dynamic data]
+        calldataload // [length]
+        dup1          // [length, length]
+        0x00           // [0x00, length, length]
+        eq             // [0x00 == length, length]
+        emptyArray jumpi  // if length is 0, revert
+        0x24           // [0x24, length]
+        swap1          // [length, offset]
+        0x00           // [current_max, length, offset]
+        continueMaxArray jump
+
+    continueMaxArray:
+        // starts with [current_max, length, offset]
+
+        // Check if length == 0
+        swap1 // [length, current_max, offset]
+        dup1 // [length, length, current_max, offset]
+        0x00 // [0x00, length, length, current_max, offset]
+        eq // [length == 0, length, current_max, offset]
+
+        // If length == 0, then return
+        end jumpi // [length, current_max, offset]
+
+        swap2 // [offset, current_max, length]
+        0x20 add // [offset + 32, current_max, length]
+        dup1 // [offset + 32, offset + 32, current_max, length]
+
+        // Get next element in the array
+        calldataload // [next_value, offset + 32, current_max, length]
+        swap1 // [offset + 32, next_value, current_max, length]
+        swap2 // [current_max, next_value, offset + 32, length]
+        dup1 // [current_max, current_max, next_value, offset + 32, length]
+        dup3 // [next_value, current_max, current_max, next_value, new_offset, length]
+        // new_max = max(current_max, next_value)
+        gt // [next_value > current_max, current_max, next_value, new_offset, length]
+        changeMax jumpi
+        swap1 pop
+        finalizeSwap jump
+
+    changeMax:
+        // arrives with [current_max, next_value, new_offset, length]
+        pop
+        finalizeSwap jump
+
+
+    finalizeSwap:
+        // length -= 1
+        swap2 // [length, offset + 32, current_max]
+        0x01 // [0x01, length, offset + 32, current_max]
+        swap1 // [length, 0x01, offset + 32, current_max]
+        sub // [length - 1, offset + 32, current_max]
+        swap1 // [offset + 32, length - 1, current_max]
+        swap2 // [new_current_max, new_length, new_offset]
+        continueMaxArray jump
+
+
+    end:
+        // arrives with [length, current_max, offset]
+        swap1 // [current_max, length, offset]
+        0x00 mstore
+        0x20 0x00 return
+
+
+    emptyArray:
+        calldatasize // [calldatasize]
+        0x00 mstore 0x20 0x00 revert
 }
