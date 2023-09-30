@@ -1,4 +1,3 @@
- 
 /** 
  *  DISTRIBUTE HUFF EXERCISE
  *  
@@ -14,5 +13,82 @@
 
 
  #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xe0 shr // [sig]
+    __FUNC_SIG(distribute) eq // [sig == distribute]
+    distributorrrr jumpi // []
+    0x00 0x00 revert
+
+    distributorrrr:
+        // get the offset for the dynamic data
+        0x04 calldataload // [offset]
+        0x04 add calldataload // [length]
+        dup1 // [length, length]
+        callvalue // [msg.value, length, length]
+        div // [msg.value / length, length]
+
+        // get the offset for the dynamic data
+        0x04 calldataload // [offset, msg.value / length, length]
+        0x24 add calldataload // [first_address, share_of_the_pie, iterator]
+
+        0x00 0x00 0x00 0x00 // [0x00, 0x00, 0x00, 0x00, first_address, share_of_the_pie, iterator]
+        dup6 // [share_of_the_pie, 0x00, 0x00, 0x00, 0x00, first_address, share_of_the_pie, iterator]
+        swap1 // [0x00, share_of_the_pie, 0x00, 0x00, 0x00, first_address, share_of_the_pie, iterator]
+        swap5 // [first_address, share_of_the_pie, 0x00, 0x00, 0x00, 0x00, share_of_the_pie, iterator]
+        gas // [gas, first_address, share_of_the_pie, 0x00, 0x00, 0x00, 0x00, share_of_the_pie, iterator]
+        call // [call_result, share_of_the_pie, iterator]
+
+        iszero // [is_failure, share_of_the_pie, iterator]
+        problemo jumpi // [share_of_the_pie, iterator]
+
+        swap1 // [iterator, share_of_the_pie]
+        0x01 // [0x01, iterator, share_of_the_pie]
+        swap1
+        sub // [iterator - 1, share_of_the_pie]
+
+        // Check if we finished iterating
+        dup1 iszero // [can_stop_looping, iterator - 1, share_of_the_pie]
+        finallycanrest jumpi // [iterator - 1, share_of_the_pie]
+
+        continueDistributing jump
+
+    continueDistributing:
+        // arrive with [iterator - 1, share_of_the_pie]
+        // get the offset for the dynamic data
+        0x04 calldataload // [offset, iterator - 1, share_of_the_pie]
+        0x04 add calldataload // [length, iterator - 1, share_of_the_pie]
+        dup2 swap1 // [length, iterator - 1, iterator - 1, share_of_the_pie]
+        sub 0x01 add // [length - (iterator-1), iterator - 1, share_of_the_pie]
+        0x20 mul // [(length - (iterator - 1) + 1) * 32, iterator - 1, share_of_the_pie]
+        0x04 calldataload // [offset, length - (iterator - 1) * 32, iterator - 1, share_of_the_pie]
+        0x04 add // [offset + 4, length - (iterator - 1) * 32, iterator - 1, share_of_the_pie]
+        add calldataload // [new_address, iterator - 1, share_of_the_pie]
+
+        0x00 0x00 0x00 0x00 // [0x00, 0x00, 0x00, 0x00, new_address, iterator - 1, share_of_the_pie]
+        dup7 // [share_of_the_pie, 0x00, 0x00, 0x00, 0x00, new_address, iterator, share_of_the_pie]
+        swap1 // [0x00, share_of_the_pie, 0x00, 0x00, 0x00, new_address, iterator, share_of_the_pie]
+        swap5 // [new_address, share_of_the_pie, 0x00, 0x00, 0x00, 0x00, iterator, share_of_the_pie]
+        gas // [gas, new_address, share_of_the_pie, 0x00, 0x00, 0x00, 0x00, iterator, share_of_the_pie]
+        call // [call_result, iterator, share_of_the_pie]
+
+        iszero // [is_failure, iterator, share_of_the_pie]
+        problemo jumpi // [iterator, share_of_the_pie]
+
+        0x01 // [0x01, iterator, share_of_the_pie]
+        swap1
+        sub // [iterator - 1, share_of_the_pie]
+
+        // Check if we finished iterating
+        dup1 iszero // [can_stop_looping, iterator - 1, share_of_the_pie]
+        finallycanrest jumpi // [iterator - 1, share_of_the_pie]
+
+        continueDistributing jump
+
+
+    problemo:
+        0x00 0x00 revert
+
+
+    finallycanrest:
+        0x00 0x00 return
    
  }
