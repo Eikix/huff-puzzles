@@ -5,6 +5,11 @@
  *  also have a getter function that returns how much an address has donated. Addresses can donate several times
  */
 
+// Import
+#include "./Hashmap.huff"
+
+#define constant DONATORS_SLOT = FREE_STORAGE_POINTER()
+
 #define function donated(address) payable returns(uint256)
 
 #define macro MAIN() = takes(0) returns(0) {
@@ -13,8 +18,30 @@
     __FUNC_SIG(donated) eq // [sig == donated]
     letsseehowmuchyoudonated jumpi // []
 
+    callvalue // [msg.value]
+    dup1 // [msg.value, msg.value]
+    0x00 eq // [msg.value == 0, msg.value]
+    nomoney jumpi // [msg.value]
+
+    caller // [caller, msg.value]
+    [DONATORS_SLOT] // [donator_slot, caller, msg.value]
+    LOAD_ELEMENT_FROM_KEYS(0x00) // [donation, msg.value]
+    add // [donation + msg.value]
+    caller // [caller, new_value]
+    [DONATORS_SLOT] // [slot, caller, new_value]
+    STORE_ELEMENT_FROM_KEYS(0x00) // []
+    0x00 0x00 return
+
+
 
     letsseehowmuchyoudonated:
         caller // [caller]
+        [DONATORS_SLOT] // [donator_slot, caller]
+        LOAD_ELEMENT_FROM_KEYS(0x00) // [donation]
+        0x00 mstore
+        0x20 0x00 return
 
+
+    nomoney:
+        0x00 0x00 return
 }
