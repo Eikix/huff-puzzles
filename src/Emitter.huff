@@ -1,4 +1,4 @@
- /** 
+/**
  *  EMITTER HUFF EXERCISE
  *  
  *  The task is to enable this contract, when the function `value(uint256, uint256)` is called, should
@@ -13,5 +13,22 @@
 
 
  #define macro MAIN() = takes(0) returns(0) {
-    
+    0x00 calldataload 0xe0 shr // [sig]
+    __FUNC_SIG(value) eq // [sig == value]
+    letsgo jumpi // []
+    0x00 0x00 revert
+
+
+    letsgo:
+    // Emit an event
+    0x24 calldataload // [next_uint, indexed_uint]
+    0x00 mstore // []
+    0x04 calldataload // [indexed_uint]
+    __EVENT_HASH(Value) // [event_hash, indexed_uint]
+    0x20 0x00 log2
+
+    // Return 01 for true
+    0x01 0x00 mstore  // []
+    0x20 0x00 return  // []
+
  }
